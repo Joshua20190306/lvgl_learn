@@ -25,6 +25,48 @@ static lv_indev_drv_t indev_drv;        // LVGL 输入设备驱动结构体
 static bool quit_flag = false;          // 退出标志
 static lv_point_t mouse_point;           // 鼠标位置
 static bool mouse_pressed = false;       // 鼠标按键状态
+static uint8_t click_count = 0; // 全局点击计数器
+static lv_obj_t *debug_label = NULL; // 全局调试标签指针
+
+/**
+ * @brief 按钮被按下事件回调函数
+ */
+static void btn_pressed_cb(lv_event_t *event)
+{
+    LV_UNUSED(event);
+    printf("按钮被按下\n");
+    fflush(stdout);
+}
+
+/**
+ * @brief 按钮被释放事件回调函数
+ */
+static void btn_released_cb(lv_event_t *event)
+{
+    LV_UNUSED(event);
+    printf("按钮被释放\n");
+    fflush(stdout);
+}
+
+/**
+ * @brief 按钮获得焦点事件回调函数
+ */
+static void btn_focused_cb(lv_event_t *event)
+{
+    LV_UNUSED(event);
+    printf("按钮获得焦点\n");
+    fflush(stdout);
+}
+
+/**
+ * @brief 按钮失去焦点事件回调函数
+ */
+static void btn_defocused_cb(lv_event_t *event)
+{
+    LV_UNUSED(event);
+    printf("按钮失去焦点\n");
+    fflush(stdout);
+}
 
 /**
  * @brief 按钮点击事件回调函数
@@ -34,6 +76,16 @@ static bool mouse_pressed = false;       // 鼠标按键状态
 static void btn_event_cb(lv_event_t *event)
 {
     LV_UNUSED(event); // 告诉编译器该参数有意未使用
+    
+    // 增加点击计数
+    click_count++;
+    
+    // 更新调试标签
+    if(debug_label != NULL) {
+        char txt_buf[32];
+        snprintf(txt_buf, sizeof(txt_buf), "Clicks: %d", click_count);
+        lv_label_set_text_static(debug_label, txt_buf);
+    }
     
     // 获取当前时间
     time_t now = time(NULL);
@@ -48,7 +100,7 @@ static void btn_event_cb(lv_event_t *event)
     fflush(stdout);  // 立即刷新输出缓冲区
     
     // 添加额外的调试信息
-    printf("按钮事件回调函数被调用\n");
+    printf("按钮事件回调函数被调用，总点击次数: %d\n", click_count);
     fflush(stdout);
 }
 
@@ -87,9 +139,34 @@ static void mouse_read_cb(lv_indev_drv_t *indev, lv_indev_data_t *data)
 {
     LV_UNUSED(indev); // 告诉编译器该参数有意未使用
     
-    data->point = mouse_point;  // 设置鼠标位置
+    data->point.x = mouse_point.x;  // 设置鼠标X位置
+    data->point.y = mouse_point.y;  // 设置鼠标Y位置
     data->state = mouse_pressed ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+    
+    // 添加一个简单的计数器，用于检查回调是否被调用
+    static int callback_count = 0;
+    callback_count++;
+    
+    // 每50次调用打印一次，避免输出过多
+    if(callback_count % 50 == 0) {
+        printf("mouse_read_cb 调用次数: %d, 位置:(%d,%d), 状态:%s\n", 
+               callback_count, (int)data->point.x, (int)data->point.y, 
+               mouse_pressed ? "按下" : "释放");
+        fflush(stdout);
+    }
 }
+
+void soft_timer_handler(void)
+{
+    static uint32_t count = 0;
+    count++;
+    if (count >= 200)
+    {
+        count = 0;
+        // printf("定时器回调函数被调用\n");
+    }
+}
+
 
 int main(void)
 {
@@ -136,18 +213,58 @@ int main(void)
     lv_indev_drv_init(&indev_drv);             // 初始化输入设备驱动
     indev_drv.type = LV_INDEV_TYPE_POINTER;    // 设置为指针设备（鼠标）
     indev_drv.read_cb = mouse_read_cb;         // 设置读取回调函数
-    lv_indev_drv_register(&indev_drv);         // 注册输入设备驱动
+    lv_indev_t * mouse_indev = lv_indev_drv_register(&indev_drv); // 注册输入设备驱动
+    
+    // 检查输入设备是否注册成功
+    if(mouse_indev != NULL) {
+        printf("输入设备注册成功\n");
+        fflush(stdout);
+        
+        // 为输入设备添加一些调试信息
+        printf("输入设备类型: POINTER\n");
+        fflush(stdout);
+        
+        // 设置光标 - 符合LVGL标准的配置
+        lv_obj_t * cursor = lv_obj_create(lv_scr_act());
+        lv_obj_set_size(cursor, 15, 15);
+        lv_obj_set_style_bg_color(cursor, lv_palette_main(LV_PALETTE_RED), 0);
+        lv_obj_set_style_border_color(cursor, lv_color_white(), 0);
+        lv_obj_set_style_border_width(cursor, 1, 0);
+        lv_obj_clear_flag(cursor, LV_OBJ_FLAG_CLICKABLE); // 确保光标本身不可点击
+        lv_indev_set_cursor(mouse_indev, cursor);
+    } else {
+        printf("输入设备注册失败\n");
+        fflush(stdout);
+    }
 
     /* 创建一个简单的标签 */
     lv_obj_t *label = lv_label_create(lv_scr_act());
     lv_label_set_text(label, "Hello LVGL!");
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);  // 居中显示
 
+    /* 添加一个标签来显示按钮状态 */
+    debug_label = lv_label_create(lv_scr_act());
+    lv_label_set_text_static(debug_label, "Clicks: 0");
+    lv_obj_align(debug_label, LV_ALIGN_TOP_LEFT, 10, 10);
+
     /* 创建一个按钮 */
     lv_obj_t *btn = lv_btn_create(lv_scr_act());
     lv_obj_set_size(btn, 120, 50);              // 设置按钮大小
     lv_obj_align(btn, LV_ALIGN_CENTER, 0, 50);  // 设置按钮位置（屏幕中心下方 50 像素）
+    
+    // 添加一些调试信息到按钮
+    lv_obj_set_style_bg_color(btn, lv_palette_main(LV_PALETTE_BLUE), 0);
+    lv_obj_set_style_radius(btn, 5, 0);
+    
+    // 添加多个事件类型的监听器，以便更全面地调试
     lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_CLICKED, NULL);  // 添加点击事件回调
+    lv_obj_add_event_cb(btn, btn_focused_cb, LV_EVENT_FOCUSED, NULL);
+    lv_obj_add_event_cb(btn, btn_defocused_cb, LV_EVENT_DEFOCUSED, NULL);
+    lv_obj_add_event_cb(btn, btn_pressed_cb, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(btn, btn_released_cb, LV_EVENT_RELEASED, NULL);
+    
+    printf("按钮已创建，位置: 屏幕中央下方\n");
+    fflush(stdout);
 
     /* 在按钮上创建标签 */
     lv_obj_t *btn_label = lv_label_create(btn);
@@ -169,6 +286,10 @@ int main(void)
                     mouse_point.x = event.button.x;
                     mouse_point.y = event.button.y;
                     mouse_pressed = true;
+                    
+                    /* 打印鼠标按下的坐标 */
+                    printf("鼠标按下，坐标: (%d, %d)\n", (int)event.button.x, (int)event.button.y);
+                    fflush(stdout);
                 }
             }
             else if(event.type == SDL_MOUSEBUTTONUP) {
@@ -177,6 +298,10 @@ int main(void)
                     mouse_point.x = event.button.x;
                     mouse_point.y = event.button.y;
                     mouse_pressed = false;
+                    
+                    /* 打印鼠标释放的坐标 */
+                    printf("鼠标释放，坐标: (%d, %d)\n", (int)event.button.x, (int)event.button.y);
+                    fflush(stdout);
                 }
             }
             else if(event.type == SDL_MOUSEMOTION) {
@@ -188,6 +313,11 @@ int main(void)
         
         /* 处理 LVGL 定时任务 */
         lv_timer_handler();
+        usleep(1000);  // 休眠 1 毫秒，而不是原来的 5 毫秒
+        
+        /* 强制处理LVGL所有待处理的任务，包括输入事件 */
+        lv_task_handler();
+        
         usleep(5000);  // 休眠 5 毫秒
     }
 
