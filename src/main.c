@@ -143,17 +143,9 @@ static void mouse_read_cb(lv_indev_drv_t *indev, lv_indev_data_t *data)
     data->point.y = mouse_point.y;  // 设置鼠标Y位置
     data->state = mouse_pressed ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
     
-    // 添加一个简单的计数器，用于检查回调是否被调用
-    static int callback_count = 0;
-    callback_count++;
-    
-    // 每50次调用打印一次，避免输出过多
-    if(callback_count % 50 == 0) {
-        printf("mouse_read_cb 调用次数: %d, 位置:(%d,%d), 状态:%s\n", 
-               callback_count, (int)data->point.x, (int)data->point.y, 
-               mouse_pressed ? "按下" : "释放");
-        fflush(stdout);
-    }
+    // 注意：对于鼠标/触摸屏等持续输入设备，
+    // 不应设置 data->continue_reading = true;
+    // 让LVGL在需要时调用读取回调
 }
 
 void soft_timer_handler(void)
@@ -220,17 +212,12 @@ int main(void)
         printf("输入设备注册成功\n");
         fflush(stdout);
         
-        // 为输入设备添加一些调试信息
-        printf("输入设备类型: POINTER\n");
-        fflush(stdout);
-        
-        // 设置光标 - 符合LVGL标准的配置
+        // 创建一个简单的光标
         lv_obj_t * cursor = lv_obj_create(lv_scr_act());
-        lv_obj_set_size(cursor, 15, 15);
+        lv_obj_set_size(cursor, 20, 20);
         lv_obj_set_style_bg_color(cursor, lv_palette_main(LV_PALETTE_RED), 0);
-        lv_obj_set_style_border_color(cursor, lv_color_white(), 0);
-        lv_obj_set_style_border_width(cursor, 1, 0);
-        lv_obj_clear_flag(cursor, LV_OBJ_FLAG_CLICKABLE); // 确保光标本身不可点击
+        lv_obj_clear_flag(cursor, LV_OBJ_FLAG_CLICKABLE); // 确保光标不会干扰点击事件
+        lv_obj_clear_flag(cursor, LV_OBJ_FLAG_PRESS_LOCK); // 防止按下时光标锁定
         lv_indev_set_cursor(mouse_indev, cursor);
     } else {
         printf("输入设备注册失败\n");
@@ -258,6 +245,10 @@ int main(void)
     
     // 添加多个事件类型的监听器，以便更全面地调试
     lv_obj_add_event_cb(btn, btn_event_cb, LV_EVENT_CLICKED, NULL);  // 添加点击事件回调
+    lv_obj_add_event_cb(btn, btn_focused_cb, LV_EVENT_FOCUSED, NULL);
+    lv_obj_add_event_cb(btn, btn_defocused_cb, LV_EVENT_DEFOCUSED, NULL);
+    lv_obj_add_event_cb(btn, btn_pressed_cb, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(btn, btn_released_cb, LV_EVENT_RELEASED, NULL);
     lv_obj_add_event_cb(btn, btn_focused_cb, LV_EVENT_FOCUSED, NULL);
     lv_obj_add_event_cb(btn, btn_defocused_cb, LV_EVENT_DEFOCUSED, NULL);
     lv_obj_add_event_cb(btn, btn_pressed_cb, LV_EVENT_PRESSED, NULL);
@@ -313,12 +304,7 @@ int main(void)
         
         /* 处理 LVGL 定时任务 */
         lv_timer_handler();
-        usleep(1000);  // 休眠 1 毫秒，而不是原来的 5 毫秒
-        
-        /* 强制处理LVGL所有待处理的任务，包括输入事件 */
-        lv_task_handler();
-        
-        usleep(5000);  // 休眠 5 毫秒
+        usleep(1000);  // 休眠 1 毫秒
     }
 
     return 0;
