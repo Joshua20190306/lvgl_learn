@@ -22,6 +22,13 @@ include_directories(
 # Source files
 set(SOURCES
     src/main.c
+    src/sdl_monitor.c
+    src/sdl_monitor.h
+    src/ui_elements.c
+    src/ui_elements.h
+    src/lvgl_port.c
+    src/lvgl_port.h
+    src/lvgl_sim.h
 )
 
 # Create executable
