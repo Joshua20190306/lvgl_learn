@@ -77,7 +77,7 @@
 #define LV_FONT_MONTSERRAT_14 1
 #define LV_FONT_MONTSERRAT_16 0
 #define LV_FONT_MONTSERRAT_18 0
-#define LV_FONT_MONTSERRAT_20 0
+#define LV_FONT_MONTSERRAT_20 1
 #define LV_FONT_MONTSERRAT_22 0
 #define LV_FONT_MONTSERRAT_24 0
 #define LV_FONT_MONTSERRAT_26 0
@@ -93,6 +93,14 @@
 #define LV_FONT_MONTSERRAT_46 0
 #define LV_FONT_MONTSERRAT_48 0
 
+/*Demonstrate special features*/
+#define LV_FONT_MONTSERRAT_12_SUBPX      0
+#define LV_FONT_MONTSERRAT_28_COMPRESSED 0  /*bpp = 3*/
+#define LV_FONT_DEJAVU_16_PERSIAN_HEBREW 0  /*Hebrew, Arabic, Persian letters and all their forms*/
+#define LV_FONT_SIMSUN_16_CJK            1  /*1000 most common CJK radicals*/
+
+#define LV_FONT_FMT_TXT_LARGE           1
+
 /*===================
    LV SETTINGS
  *===================*/
@@ -102,6 +110,28 @@
 
 /*Enable to use the internal allocator (lv_mem_alloc).*/
 #define LV_USE_MEM_ALLOC 1
+
+
+/*---------------------
+ * 3rd party libraries
+ *--------------------*/
+
+ /*FreeType library*/
+#define LV_USE_FREETYPE 0
+#if LV_USE_FREETYPE
+    /*Memory used by FreeType to cache characters [bytes] (-1: no caching)*/
+    #define LV_FREETYPE_CACHE_SIZE (16 * 1024)
+    #if LV_FREETYPE_CACHE_SIZE >= 0
+        /* 1: bitmap cache use the sbit cache, 0:bitmap cache use the image cache. */
+        /* sbit cache:it is much more memory efficient for small bitmaps(font size < 256) */
+        /* if font size >= 256, must be configured as image cache */
+        #define LV_FREETYPE_SBIT_CACHE 0
+        /* Maximum number of opened FT_Face/FT_Size objects managed by this cache instance. */
+        /* (0:use system defaults) */
+        #define LV_FREETYPE_CACHE_FT_FACES 0
+        #define LV_FREETYPE_CACHE_FT_SIZES 0
+    #endif
+#endif
 
 /*==================
    WIDGET USAGE

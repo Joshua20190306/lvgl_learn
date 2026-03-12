@@ -109,6 +109,7 @@ static void slider_event_cb(lv_event_t *e)
     lv_label_set_text_fmt(label, "value: %d", val);
 }
 
+extern const lv_font_t lv_font_wqy_14;
 
 
 
@@ -120,14 +121,14 @@ void create_ui_elements(void)
     // 创建标题标签
     lv_obj_t *title_label = lv_label_create(lv_scr_act());
     lv_label_set_text(title_label, "LVGL Demo 15");
-    lv_obj_set_style_text_font(title_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_font(title_label, &lv_font_montserrat_20, 0);
     lv_obj_align(title_label, LV_ALIGN_TOP_MID, 0, 20);
     g_title_label = title_label;
 
     // 创建帧率显示标签
     g_fps_label = lv_label_create(lv_scr_act());
     lv_label_set_text(g_fps_label, "FPS: --");
-    lv_obj_set_style_text_font(g_fps_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_font(g_fps_label, &lv_font_montserrat_20, 0);
     lv_obj_align(g_fps_label, LV_ALIGN_TOP_RIGHT, -10, 10);
 
     // 创建滑块
@@ -180,6 +181,21 @@ void create_ui_elements(void)
     lv_obj_center(clear_btn_label);
     
     // 不自动设置焦点，让用户手动点击输入框
+
+    // 创建系统中文标签
+    lv_obj_t* chinese_label = lv_label_create(lv_scr_act());
+    lv_label_set_text(chinese_label, "创建系统中文标签");
+    lv_obj_set_style_text_font(chinese_label, &lv_font_simsun_16_cjk, 0);
+    lv_obj_align(chinese_label, LV_ALIGN_TOP_MID, 0, 420);
+
+
+ 
+    // 创建自定义中文标签  lv_font_wqy_14引入字符
+    lv_obj_t* chinese_label1 = lv_label_create(lv_scr_act());
+    lv_label_set_text(chinese_label1, "创建自定义中文标签");
+    lv_obj_set_style_text_font(chinese_label1, &lv_font_wqy_14, 0);
+    lv_obj_align(chinese_label1, LV_ALIGN_TOP_MID, 0, 440);
+
 }
 
 /* 软件定时器处理函数 */

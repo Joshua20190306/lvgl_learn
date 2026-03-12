@@ -29,6 +29,7 @@ set(SOURCES
     src/lvgl_port.c
     src/lvgl_port.h
     src/lvgl_sim.h
+    src/lv_font_wqy_14.c
 )
 
 # Create executable
