@@ -15,9 +15,13 @@ int main(int argc, char* argv[])
     // 初始化LVGL显示和输入设备驱动
     lvgl_port_init();
 
+
+    custom_font_init();  // 初始化自定义字体
+
     // 创建UI控件
     create_ui_elements();
 
+    
     printf("进入主循环...\n");
 
     while (1) {

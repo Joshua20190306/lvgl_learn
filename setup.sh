@@ -44,6 +44,33 @@ if ! pkg-config --exists sdl2; then
     fi
 fi
 
+# 检查是否安装了FreeType
+if ! pkg-config --exists freetype2; then
+    echo "警告: 未找到FreeType，正在尝试安装..."
+
+    # 检测操作系统并安装FreeType
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if command -v apt-get &> /dev/null; then
+            sudo apt-get install -y libfreetype6-dev
+        elif command -v yum &> /dev/null; then
+            sudo yum install -y freetype-devel
+        else
+            echo "错误: 无法自动安装FreeType，请手动安装"
+            exit 1
+        fi
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        if command -v brew &> /dev/null; then
+            brew install freetype
+        else
+            echo "错误: 未找到Homebrew，请手动安装FreeType"
+            exit 1
+        fi
+    else
+        echo "错误: 不支持的操作系统"
+        exit 1
+    fi
+fi
+
 # 克隆LVGL库
 if [ ! -d "lvgl" ]; then
     echo "正在克隆LVGL库..."

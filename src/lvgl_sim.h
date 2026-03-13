@@ -20,6 +20,7 @@ extern "C" {
 #include "sdl_monitor.h"
 #include "ui_elements.h"
 #include "lvgl_port.h"
+#include "freetype_example.h"
 
 /* 显示配置 */
 #define MONITOR_HOR_RES 480
