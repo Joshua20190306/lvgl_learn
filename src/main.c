@@ -15,6 +15,17 @@ int main(int argc, char* argv[])
     // 初始化LVGL显示和输入设备驱动
     lvgl_port_init();
 
+    // 初始化文件系统
+    // lv_fs_drv_t fs_drv;
+    // lv_fs_drv_init(&fs_drv);
+    // fs_drv.letter = 'S';
+    // fs_drv.open_cb = fs_open;
+    // fs_drv.read_cb = fs_read;
+    // fs_drv.close_cb = fs_close;
+    // fs_drv.seek_cb = fs_seek;
+    // fs_drv.tell_cb = fs_tell;
+    // lv_fs_drv_register(&fs_drv);
+
 
     custom_font_init();  // 初始化自定义字体
 

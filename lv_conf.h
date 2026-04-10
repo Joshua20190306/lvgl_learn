@@ -241,4 +241,15 @@
 #define LV_SDL_BUF_COUNT        2    /*1 or 2*/
 #endif
 
+/*==================
+   FILE SYSTEM
+ *==================*/
+
+/*LVGL file system interface*/
+#define LV_USE_FS_STDIO 'S'
+#if LV_USE_FS_STDIO
+    #define LV_FS_STDIO_PATH_LEN 256
+    #define LV_FS_STDIO_LETTER 'S'
+#endif
+
 #endif /*LV_CONF_H*/

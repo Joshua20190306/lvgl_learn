@@ -1,4 +1,8 @@
 #include "lvgl_sim.h"
+#include <unistd.h>
+
+
+#define PIC_PATH "/home/hdl/work/res/pic/"
 
 /* 全局UI控件变量定义 */
 lv_obj_t *g_title_label = NULL;
@@ -229,13 +233,41 @@ void create_ui_elements(void)
     // ==================== 创建图片 (红色方块) - 最后创建，确保在最上层 ====================
     lv_obj_t* img = lv_img_create(lv_scr_act());
     lv_img_set_src(img, &RED);
-    lv_obj_align(img, LV_ALIGN_TOP_MID, 0, 40);
-    lv_obj_move_foreground(img);  // 移到最前面
+    lv_obj_align(img, LV_ALIGN_DEFAULT, 200, 0);
+
+    lv_obj_t* img1 = lv_img_create(lv_scr_act());
+    // 设置图片大小，确保可见
+    lv_obj_set_size(img1, 200, 200);
+
+    // 图片路径 - 使用LVGL文件系统路径格式
+    const char* img_path = "S:/home/hdl/work/res/pic/123456.bin";
+    printf("尝试加载图片: %s\n", img_path);
     
-    // 添加调试信息
-    printf("[DEBUG] 图片尺寸：%dx%d\n", RED.header.w, RED.header.h);
-    printf("[DEBUG] 图片创建成功，地址：%p\n", (void*)img);
-    printf("[DEBUG] 图片位置：顶部中央，标题下方\n");
+    // 直接使用文件路径作为图片源，让LVGL文件系统自动处理
+    lv_img_set_src(img1, img_path);
+
+    #if 0
+    // 检查图片源是否设置成功
+    const void* src = lv_img_get_src(img1);
+    if (src == NULL) {
+        printf("错误: 图片源未设置成功\n");
+    } else {
+        printf("图片源设置成功\n");
+        
+        // 尝试获取图片信息
+        lv_img_header_t header;
+        lv_res_t res = lv_img_decoder_get_info(src, &header);
+        if (res != LV_RES_OK) {
+            printf("警告: 无法获取图片信息，可能格式不支持\n");
+        } else {
+            printf("图片信息: 宽=%d, 高=%d, 格式=%d\n", header.w, header.h, header.cf);
+        }
+    }
+    #endif
+
+    // 只使用一种对齐方式，避免冲突
+    lv_obj_align(img1, LV_ALIGN_DEFAULT, 200, 200);
+
 }
 
 /* 软件定时器处理函数 */
